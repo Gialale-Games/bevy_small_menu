@@ -1,0 +1,23 @@
+[package]
+name = "bevy_small_menu"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { version = "0.16.1", default-features = false, features = [
+    "bevy_asset",
+    "bevy_ui",
+] }
+
+[dev-dependencies]
+bevy = { version = "0.16.1", default-features = false, features = [
+    "std",
+    "bevy_asset",
+    "bevy_ui",
+    "bevy_state",
+    "bevy_text",
+    "png",
+    "x11",
+    "bevy_window",
+    "default_font",
+] }
