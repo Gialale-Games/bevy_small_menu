@@ -80,7 +80,7 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
-            bottom: Val::Px(50.),
+            bottom: Val::Px(150.),
             left: Val::Percent(40.),
             ..Default::default()
         },
@@ -107,7 +107,7 @@ fn draw_main_nodes(mut commands: Commands, mut next_state: ResMut<NextState<Play
             ..Default::default()
         },
         SmallMenu::new(vec![
-            SmallMenuNode::bundle(MainNodes::FastFood, Text::new("FastFood")),
+            SmallMenuNode::bundle(MainNodes::FastFood, Text::new("Fast Food")),
             SmallMenuNode::bundle(MainNodes::Fruits, Text::new("Fruits")),
             SmallMenuNode::bundle(MainNodes::Vegetable, Text::new("Vegetable")),
         ]),

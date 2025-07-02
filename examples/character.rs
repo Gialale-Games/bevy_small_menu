@@ -78,7 +78,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
-            bottom: Val::Px(30.),
+            bottom: Val::Px(150.),
             left: Val::Percent(42.),
             ..Default::default()
         },
