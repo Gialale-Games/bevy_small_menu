@@ -1,16 +1,18 @@
+> [!WARNING]
+> This plugin is currently in an early development phase. The API is subject to change without prior notice as features are added and refined. Your feedback is welcome!
 # bevy_small_menu
-A type safe head-less menu plugin for (Bevy Engine)[https://bevyengine.org/]. This plugin makes your UI Nodes or Sprites into interactive menus !.
+A type safe head-less menu plugin for [Bevy Engine](https://bevyengine.org/). This plugin transforms your UI Nodes or Sprites into interactive menus!
 
 <img src="/assets/simple.gif" height="250" width="250"> |
-<img src="/assets/character.gif" height="250" width="250"> 
+<img src="/assets/character.gif" height="250" width="250">
 
 ## Getting Started
-Checkout the examples for working with:
-- UI Nodes [Simple selection](examples/simple.rs)
-- Sprites [Character selection](examples/character.rs)
+Dive into the examples to see bevy_small_menu in action::
+- UI Nodes [Simple Selection example](examples/simple.rs)
+- Sprites [Character Selection example](examples/character.rs)
 
 ## Usage
-Add bevy_small_menu as plugin and your enum type:
+To use `bevy_small_menu, add it as a plugin to your Bevy `App` for each enum type you want to use as a menu payload
 ```rust
  app.add_plugins((
   SmallMenuPlugin::<YourType>::default(),
@@ -18,9 +20,10 @@ Add bevy_small_menu as plugin and your enum type:
 ))
 ```
 
-the menu can be initialized in two ways:
+A menu can be initialized in two primary ways:
 
-**Declarative** with ` SmallMenuNode::bundle(payload: T, bundle: B)`
+**Declarative**
+Use `SmallMenuNode::bundle(payload: T, bundle: B) when you want to declaratively define your menu nodes with Bevy bundles.
 ```rust
 fn setup(mut commands: Commands) {
     commands.spawn((
@@ -30,7 +33,7 @@ fn setup(mut commands: Commands) {
             position_type: PositionType::Absolute,
             ..Default::default()
         },
-        
+
         SmallMenu::new(vec![
             SmallMenuNode::bundle(YourType::Variant1, Text::new("Variant 1")),
             SmallMenuNode::bundle(YourType::Variant2, Text::new("Variant 2")),
@@ -39,7 +42,9 @@ fn setup(mut commands: Commands) {
     ));
 }
 ```
-**Imperative** with `SmallMenuNode::fn(payload: T, fn(commands: Commands, node: Entity))`
+**Imperative**
+Opt for `SmallMenuNode::with_fn(payload: T, setup_fn: Fn(Commands, Entity)) when you need more control and wish to imperatively manipulate the spawned node during its initial setup.
+
 ```rust
 fn setup(mut commands: Commands) {
     let menu_nodes: Vec<SmallMenuNode<YourType>> = entities
@@ -64,11 +69,7 @@ fn setup(mut commands: Commands) {
     ));
 }
 ```
-Use `SmallMenuNode::fn()` if you need to manipulate the node on the first render.
-
-The `payload` is a enum variant that is declared in the plugin initaluizeton. 
-
+The `payload is an enum variant that you declare when adding the plugin to your App.
 
 ### Todo's
-- Declare styling of active and no-active nodes
-
+- Declare styling for active and inactive nodes
