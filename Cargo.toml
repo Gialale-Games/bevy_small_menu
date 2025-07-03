@@ -2,12 +2,20 @@
 name = "bevy_small_menu"
 version = "0.1.0"
 edition = "2024"
+authors = [
+    "glklimmer <https://github.com/glklimmer>",
+    "Gianluca Frongia <gianluca.frongia@protonmail.com>",
+]
+description = "A type-safe, headless menu plugin for Bevy Engine, enabling interactive menus from UI Nodes or Sprites."
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/Gialale-Games/bevy_small_menu"
+categories = ["game-development", "games"]
+keywords = ["bevy", "gamedev", "menu", "selection"]
+exclude = ["assets/*"]
 
 [dependencies]
-bevy = { version = "0.16.1", default-features = false, features = [
-    "bevy_asset",
-    "bevy_ui",
-] }
+bevy = { version = "0.16.1", default-features = false }
 
 [dev-dependencies]
 bevy = { version = "0.16.1", default-features = false, features = [
@@ -21,3 +29,7 @@ bevy = { version = "0.16.1", default-features = false, features = [
     "bevy_window",
     "default_font",
 ] }
+
+[lints.clippy]
+type_complexity = "allow"
+too_many_arguments = "allow"
