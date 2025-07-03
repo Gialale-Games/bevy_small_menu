@@ -12,7 +12,7 @@ Dive into the examples to see bevy_small_menu in action::
 - Sprites [Character Selection example](examples/character.rs)
 
 ## Usage
-To use `bevy_small_menu, add it as a plugin to your Bevy `App` for each enum type you want to use as a menu payload
+To use `bevy_small_menu`, add it as a plugin to your Bevy` App` for each enum type you want to use as a menu payload
 ```rust
  app.add_plugins((
   SmallMenuPlugin::<YourType>::default(),
@@ -23,7 +23,8 @@ To use `bevy_small_menu, add it as a plugin to your Bevy `App` for each enum typ
 A menu can be initialized in two primary ways:
 
 **Declarative**
-Use `SmallMenuNode::bundle(payload: T, bundle: B) when you want to declaratively define your menu nodes with Bevy bundles.
+
+Use `SmallMenuNode::bundle(payload: T, bundle: B)` when you want to declaratively define your menu nodes with Bevy bundles.
 ```rust
 fn setup(mut commands: Commands) {
     commands.spawn((
@@ -43,7 +44,8 @@ fn setup(mut commands: Commands) {
 }
 ```
 **Imperative**
-Opt for `SmallMenuNode::with_fn(payload: T, setup_fn: Fn(Commands, Entity)) when you need more control and wish to imperatively manipulate the spawned node during its initial setup.
+
+Opt for `SmallMenuNode::with_fn(payload: T, setup_fn: Fn(Commands, Entity))` when you need more control and wish to imperatively manipulate the spawned node during its initial setup.
 
 ```rust
 fn setup(mut commands: Commands) {
@@ -69,7 +71,8 @@ fn setup(mut commands: Commands) {
     ));
 }
 ```
-The `payload is an enum variant that you declare when adding the plugin to your App.
+The `payload` is an enum variant that you declare when adding the plugin to your App.
 
-### Todo's
+###  Todo's
 - Declare styling for active and inactive nodes
+- Add tests
