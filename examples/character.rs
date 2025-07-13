@@ -1,7 +1,10 @@
-use bevy::prelude::*;
+use bevy::{
+    color::palettes::css::{BLACK, GREEN, GREY, YELLOW},
+    prelude::*,
+};
 use bevy_small_menu::{
-    CycleDirection, NodePayload, Selected, SelectionCallback, SelectionEvent, SmallMenu,
-    SmallMenuNode, SmallMenuPlugin,
+    ChangeNodeColors, CycleDirection, NodePayload, SelectedNode, SelectionCallback, SelectionEvent,
+    SmallMenu, SmallMenuNode, SmallMenuPlugin,
 };
 
 #[derive(Clone, Copy)]
@@ -37,7 +40,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugins((SmallMenuPlugin::<Character>::default(),))
+        .add_plugins(SmallMenuPlugin::<Character>::default())
         .add_observer(get_selected_node)
         .add_observer(draw_selection_arrow)
         .add_systems(Startup, setup)
@@ -71,7 +74,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     .collect();
 
     commands.spawn((
-        SmallMenu::new(menu_nodes).with_start_node(1),
+        SmallMenu::new(menu_nodes)
+            .with_start_node(1)
+            .with_colors(Color::Srgba(GREY), Color::Srgba(GREEN)),
         Transform::from_xyz(0., 0., 0.),
     ));
 
@@ -89,13 +94,23 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn input_triggers(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
     if input.any_just_pressed([KeyCode::KeyD, KeyCode::ArrowRight]) {
-        commands.trigger(CycleDirection::<Character>::right());
+        commands.trigger(CycleDirection::Right);
     }
     if input.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
-        commands.trigger(CycleDirection::<Character>::left());
+        commands.trigger(CycleDirection::Left);
     }
     if input.just_pressed(KeyCode::Enter) {
         commands.trigger(SelectionCallback::<Character>::default());
+    }
+
+    if input.just_pressed(KeyCode::KeyR) {
+        let random_idle_color = Color::Srgba(BLACK);
+        let random_selected_color = Color::Srgba(YELLOW);
+
+        commands.trigger(ChangeNodeColors {
+            new_idle_color: random_idle_color,
+            new_selected_color: random_selected_color,
+        });
     }
 }
 
@@ -140,7 +155,7 @@ fn draw_selection_arrow(
 }
 
 fn draw_flag_on_selected(
-    menu_entries_add: Query<Entity, (Added<Selected>, With<NodePayload<Character>>)>,
+    menu_entries_add: Query<Entity, (Added<SelectedNode>, With<NodePayload<Character>>)>,
     mut commands: Commands,
 ) {
     let Ok(entry) = menu_entries_add.single() else {
