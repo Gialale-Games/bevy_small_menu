@@ -12,7 +12,7 @@ Dive into the examples to see bevy_small_menu in action::
 - Sprites [Character Selection example](examples/character.rs)
 
 ### Initialization
-To use `bevy_small_menu`, add it as a plugin to your Bevy` App` for each enum type you want to use as a menu payload
+To use `bevy_small_menu`, add it as a plugin to your Bevy `App` for each enum type you want to use as a menu payload
 ```rust
  app.add_plugins((
   SmallMenuPlugin::<YourType>::default(),
@@ -109,7 +109,7 @@ SmallMenu::new(menu_nodes)
     .with_colors(Color::Srgba(GREY), Color::Srgba(GREEN)),
 ```
 
-or during the runtime with a the trigger `ChangeNodeColors`:
+or during the runtime with `ChangeNodeColors`:
 
 ```rust
 commands.trigger(ChangeNodeColors {
