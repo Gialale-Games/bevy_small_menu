@@ -11,7 +11,7 @@ Dive into the examples to see bevy_small_menu in action::
 - UI Nodes [Simple Selection example](examples/simple.rs)
 - Sprites [Character Selection example](examples/character.rs)
 
-## Usage
+### Initialization
 To use `bevy_small_menu`, add it as a plugin to your Bevy` App` for each enum type you want to use as a menu payload
 ```rust
  app.add_plugins((
@@ -19,12 +19,11 @@ To use `bevy_small_menu`, add it as a plugin to your Bevy` App` for each enum ty
   SmallMenuPlugin::<YourSecondType>::default(),
 ))
 ```
-
 A menu can be initialized in two primary ways:
 
-**Declarative**
+**`SmallMenuNode::bundle`**
 
-Use `SmallMenuNode::bundle(payload: T, bundle: B)` when you want to declaratively define your menu nodes with Bevy bundles.
+Use `SmallMenuNode::bundle(payload: T, bundle: B)` if your menu consist of [UI Nodes](https://docs.rs/bevy/latest/bevy/ui/struct.Node.html).
 ```rust
 fn setup(mut commands: Commands) {
     commands.spawn((
@@ -34,7 +33,6 @@ fn setup(mut commands: Commands) {
             position_type: PositionType::Absolute,
             ..Default::default()
         },
-
         SmallMenu::new(vec![
             SmallMenuNode::bundle(YourType::Variant1, Text::new("Variant 1")),
             SmallMenuNode::bundle(YourType::Variant2, Text::new("Variant 2")),
@@ -43,9 +41,9 @@ fn setup(mut commands: Commands) {
     ));
 }
 ```
-**Imperative**
+**`SmallMenuNode::with_fn`**
 
-Opt for `SmallMenuNode::with_fn(payload: T, setup_fn: Fn(Commands, Entity))` when you need more control and wish to imperatively manipulate the spawned node during its initial setup.
+Use `SmallMenuNode::with_fn(payload: T, setup_fn: Fn(Commands, Entity))` if your menu consist of [Sprites](https://docs.rs/bevy/latest/bevy/sprite/index.html). This allows manipulation of the spawned node during its initial setup.
 
 ```rust
 fn setup(mut commands: Commands) {
@@ -73,6 +71,65 @@ fn setup(mut commands: Commands) {
 ```
 The `payload` is an enum variant that you declare when adding the plugin to your App.
 
-###  Todo's
-- Declare styling for active and inactive nodes
-- Add tests
+### Usage
+
+**Cycling through nodes**
+
+Cycling though nodes of an active menu can be done with the triggers `CycleDirection::Right` and `CycleDirection::Left`.
+```rust
+if input.any_just_pressed([KeyCode::KeyD, KeyCode::ArrowRight]) {
+    commands.trigger(CycleDirection::Right);
+}
+if input.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
+    commands.trigger(CycleDirection::Left);
+}
+```
+
+**Getting the selected node**
+
+Register an observer to handle selection events:
+```rust
+fn selction_event(
+    trigger: Trigger<SelectionEvent<T>>,
+)
+```
+Then, trigger a request to get the selected node using:
+```rust
+commands.trigger(SelectionCallback::<T>::default())
+```
+
+
+**Chaging colors**
+
+Each node has a `SelectedNodeColor(pub Color)` and `IdleNodeColor(pub Color)` component.
+
+These can be changed in the initialization:
+```rust
+SmallMenu::new(menu_nodes)
+    .with_colors(Color::Srgba(GREY), Color::Srgba(GREEN)),
+```
+
+or during the runtime with a the trigger `ChangeNodeColors`:
+
+```rust
+commands.trigger(ChangeNodeColors {
+    new_idle_color: random_idle_color,
+    new_selected_color: random_selected_color,
+});
+```
+
+**Closing a menu**
+The event will close the last initialized menu,
+```rust
+commands.trigger(CloseSmallMenu)
+```
+
+The plugin will then trigger the event `ClosedMenu` when a menu is closed.
+```rust
+_: Trigger<ClosedMenu<MainNodes>>,
+```
+
+### Bevy Version Compatibility
+| bevy_behave | bevy |
+| ----------- | ---- |
+| 0.1         | 0.16 |
