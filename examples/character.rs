@@ -1,6 +1,7 @@
 use bevy::{
     color::palettes::css::{BLACK, GREEN, GREY, YELLOW},
     prelude::*,
+    window::WindowResolution,
 };
 use bevy_small_menu::{
     ChangeNodeColors, CycleDirection, NodePayload, SelectedNode, SelectionCallback, SelectionEvent,
@@ -26,7 +27,7 @@ struct DisplaySelected;
 fn main() {
     let primary_window = Window {
         title: "Bevy SmallMenu Character Selection".to_string(),
-        resolution: (1280.0, 720.0).into(),
+        resolution: WindowResolution::new(1280, 720),
         resizable: false,
         ..default()
     };
@@ -115,7 +116,7 @@ fn input_triggers(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
 }
 
 fn get_selected_node(
-    trigger: Trigger<SelectionEvent<Character>>,
+    trigger: On<SelectionEvent<Character>>,
     mut display_selected: Query<&mut Text, With<DisplaySelected>>,
 ) {
     let mut display = display_selected.single_mut().unwrap();
@@ -128,7 +129,7 @@ fn get_selected_node(
 }
 
 fn draw_selection_arrow(
-    trigger: Trigger<DrawArrow>,
+    trigger: On<DrawArrow>,
     mut current_hover: Query<&mut Transform, With<Arrow>>,
     menu_entries_add: Query<&GlobalTransform, With<NodePayload<Character>>>,
     mut commands: Commands,

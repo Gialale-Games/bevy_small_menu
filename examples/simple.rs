@@ -42,8 +42,6 @@ struct DisplaySelected;
 fn main() {
     let primary_window = Window {
         title: "Bevy SmallMenu Simple".to_string(),
-        resolution: (1280.0, 720.0).into(),
-        resizable: false,
         ..default()
     };
 
@@ -130,7 +128,7 @@ fn input_triggers(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
     }
 }
 
-fn get_selected_node(trigger: Trigger<SelectionEvent<MainNodes>>, mut commands: Commands) {
+fn get_selected_node(trigger: On<SelectionEvent<MainNodes>>, mut commands: Commands) {
     match trigger.selection {
         MainNodes::FastFood => {
             commands.spawn((
@@ -203,7 +201,7 @@ fn display_selected(
 }
 
 fn get_closed_main_menu(
-    _: Trigger<ClosedMenu<MainNodes>>,
+    _: On<ClosedMenu<MainNodes>>,
     mut commands: Commands,
     mut next_state: ResMut<NextState<PlayerState>>,
 ) {

@@ -2,7 +2,7 @@ use std::{marker::PhantomData, sync::Arc};
 
 use bevy::{
     color::palettes::css::GREY,
-    ecs::{component::HookContext, world::DeferredWorld},
+    ecs::{lifecycle::HookContext, world::DeferredWorld},
     prelude::*,
 };
 
@@ -197,9 +197,7 @@ impl<T: Clone + 'static> SmallMenu<T> {
 impl<T: Clone + Send + Sync + 'static> Plugin for SmallMenuPlugin<T> {
     fn build(&self, app: &mut App) {
         if app.world().get_resource::<SmallMenuSingleton>().is_none() {
-            app.add_event::<CycleDirection>()
-                .add_event::<ChangeNodeColors>()
-                .add_observer(close_small_menu)
+            app.add_observer(close_small_menu)
                 .add_observer(cycle_commands)
                 .add_observer(cycle_commands)
                 .add_observer(change_node_colors);
@@ -207,8 +205,6 @@ impl<T: Clone + Send + Sync + 'static> Plugin for SmallMenuPlugin<T> {
 
         app.init_resource::<ActiveSmallMenus>()
             .init_resource::<SmallMenuSingleton>()
-            .add_event::<SelectionCallback<T>>()
-            .add_event::<CloseSmallMenu>()
             .add_observer(selection_callback::<T>)
             .add_observer(open_small_menu::<T>)
             .add_observer(closed_menu_callback::<T>);
@@ -216,13 +212,13 @@ impl<T: Clone + Send + Sync + 'static> Plugin for SmallMenuPlugin<T> {
 }
 
 fn open_small_menu<T: Clone + Send + Sync + 'static>(
-    trigger: Trigger<OnAdd, SmallMenu<T>>,
+    trigger: On<Add, SmallMenu<T>>,
     mut commands: Commands,
     mut active: ResMut<ActiveSmallMenus>,
     query: Query<&SmallMenu<T>>,
-) {
-    let menu_entity = trigger.target();
-    let menu = query.get(menu_entity).unwrap();
+) -> Result {
+    let menu_entity = trigger.entity;
+    let menu = query.get(menu_entity)?;
 
     for (i, node) in menu.nodes.iter().enumerate() {
         let entry = commands.spawn(NodePayload(node.payload.clone())).id();
@@ -250,30 +246,31 @@ fn open_small_menu<T: Clone + Send + Sync + 'static>(
     }
 
     active.push(menu_entity);
+    Ok(())
 }
 
 fn cycle_commands(
-    trigger: Trigger<CycleDirection>,
+    trigger: On<CycleDirection>,
     active_menu: Res<ActiveSmallMenus>,
     active: Query<Entity, With<SelectedNode>>,
     children_query: Query<&Children>,
     mut commands: Commands,
-) {
+) -> Result {
     let direction = match *trigger {
         CycleDirection::Left => -1,
         CycleDirection::Right => 1,
     };
 
     let Some(active_menu) = active_menu.last() else {
-        return;
+        return Ok(());
     };
     let Ok(descendants) = children_query.get(*active_menu) else {
-        return;
+        return Ok(());
     };
 
     let total_items = descendants.len() as i32;
     if total_items == 0 {
-        return;
+        return Ok(());
     }
 
     let mut current_index: i32 = 0;
@@ -296,39 +293,41 @@ fn cycle_commands(
             .insert(SelectedNode)
             .remove::<IdleNode>();
     }
+    Ok(())
 }
 
 fn close_small_menu(
-    _: Trigger<CloseSmallMenu>,
+    _: On<CloseSmallMenu>,
     mut commands: Commands,
     mut active_menus: ResMut<ActiveSmallMenus>,
-) {
+) -> Result {
     let Some(menu_entity) = active_menus.pop() else {
-        return;
+        return Ok(());
     };
 
     commands.entity(menu_entity).despawn();
+    Ok(())
 }
 
 fn closed_menu_callback<T: Clone + Send + Sync + 'static>(
-    _: Trigger<OnRemove, SmallMenu<T>>,
+    _: On<Remove, SmallMenu<T>>,
     mut commands: Commands,
 ) {
     commands.trigger(ClosedMenu::<T>(PhantomData));
 }
 
 fn selection_callback<T: Clone + Send + Sync + 'static>(
-    _: Trigger<SelectionCallback<T>>,
+    _: On<SelectionCallback<T>>,
     mut commands: Commands,
     active: Res<ActiveSmallMenus>,
     children: Query<&Children>,
     menu_query: Query<&NodePayload<T>, With<SelectedNode>>,
-) {
+) -> Result {
     let Some(menu) = active.last() else {
-        return;
+        return Ok(());
     };
     let Ok(children) = children.get(*menu) else {
-        return;
+        return Ok(());
     };
 
     for child in children.iter() {
@@ -342,10 +341,11 @@ fn selection_callback<T: Clone + Send + Sync + 'static>(
             entry: child,
         });
     }
+    Ok(())
 }
 
 fn change_node_colors(
-    trigger: Trigger<ChangeNodeColors>,
+    trigger: On<ChangeNodeColors>,
     mut node_colors: Query<(
         Entity,
         Option<&SelectedNode>,
@@ -353,7 +353,7 @@ fn change_node_colors(
         &mut IdleNodeColor,
     )>,
     mut commands: Commands,
-) {
+) -> Result {
     for (entity, has_selected, mut selected_color, mut idle_color) in node_colors.iter_mut() {
         selected_color.0 = trigger.new_selected_color;
         idle_color.0 = trigger.new_idle_color;
@@ -369,6 +369,7 @@ fn change_node_colors(
             }
         }
     }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -420,7 +421,11 @@ mod tests {
         assert_eq!(active_menus.len(), 1);
         assert_eq!(active_menus[0], menu_entity);
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         assert_eq!(children.len(), 3);
 
         let mut selected_count = 0;
@@ -448,7 +453,11 @@ mod tests {
         let menu_entity = app.world_mut().spawn(menu).id();
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         let third_child = children[2];
 
         assert!(app.world().entity(third_child).contains::<SelectedNode>());
@@ -464,19 +473,23 @@ mod tests {
         let menu_entity = app.world_mut().spawn(menu).id();
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         let first_child = children[0];
 
         let selected_color = app
             .world()
             .entity(first_child)
             .get::<SelectedNodeColor>()
-            .unwrap();
+            .expect("first child should have SelectedNodeColor");
         let idle_color = app
             .world()
             .entity(first_child)
             .get::<IdleNodeColor>()
-            .unwrap();
+            .expect("first child should have IdleNodeColor");
 
         assert_eq!(selected_color.0, Color::Srgba(BLUE));
         assert_eq!(idle_color.0, Color::Srgba(RED));
@@ -494,7 +507,11 @@ mod tests {
         app.world_mut().trigger(CycleDirection::Right);
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
 
         assert!(app.world().entity(children[0]).contains::<IdleNode>());
         assert!(app.world().entity(children[1]).contains::<SelectedNode>());
@@ -513,7 +530,11 @@ mod tests {
         app.world_mut().trigger(CycleDirection::Left);
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
 
         assert!(app.world().entity(children[0]).contains::<IdleNode>());
         assert!(app.world().entity(children[1]).contains::<IdleNode>());
@@ -534,13 +555,21 @@ mod tests {
         app.world_mut().trigger(CycleDirection::Right);
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         assert!(app.world().entity(children[2]).contains::<SelectedNode>());
 
         app.world_mut().trigger(CycleDirection::Right);
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         assert!(app.world().entity(children[0]).contains::<SelectedNode>());
         assert!(app.world().entity(children[1]).contains::<IdleNode>());
         assert!(app.world().entity(children[2]).contains::<IdleNode>());
@@ -552,7 +581,7 @@ mod tests {
         let nodes = create_test_menu_nodes();
         let menu = SmallMenu::new(nodes);
 
-        app.add_observer(|trigger: Trigger<SelectionEvent<TestPayload>>| {
+        app.add_observer(|trigger: On<SelectionEvent<TestPayload>>| {
             let event = trigger.event();
             assert_eq!(event.selection, TestPayload::Payload1)
         });
@@ -567,7 +596,7 @@ mod tests {
         app.world_mut().trigger(CycleDirection::Right);
         app.update();
 
-        app.add_observer(|trigger: Trigger<SelectionEvent<TestPayload>>| {
+        app.add_observer(|trigger: On<SelectionEvent<TestPayload>>| {
             let event = trigger.event();
             assert_eq!(event.selection, TestPayload::Payload2)
         });
@@ -636,15 +665,23 @@ mod tests {
         });
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
 
         for child in children.iter() {
             let selected_color = app
                 .world()
                 .entity(child)
                 .get::<SelectedNodeColor>()
-                .unwrap();
-            let idle_color = app.world().entity(child).get::<IdleNodeColor>().unwrap();
+                .expect("child should have SelectedNodeColor");
+            let idle_color = app
+                .world()
+                .entity(child)
+                .get::<IdleNodeColor>()
+                .expect("child should have IdleNodeColor");
 
             assert_eq!(selected_color.0, Color::Srgba(BLUE));
             assert_eq!(idle_color.0, Color::Srgba(RED));
@@ -660,12 +697,24 @@ mod tests {
         let menu_entity = app.world_mut().spawn(menu).id();
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         let selected_child = children[0];
         let idle_child = children[1];
 
-        let selected_sprite = app.world().entity(selected_child).get::<Sprite>().unwrap();
-        let idle_sprite = app.world().entity(idle_child).get::<Sprite>().unwrap();
+        let selected_sprite = app
+            .world()
+            .entity(selected_child)
+            .get::<Sprite>()
+            .expect("selected child should have Sprite");
+        let idle_sprite = app
+            .world()
+            .entity(idle_child)
+            .get::<Sprite>()
+            .expect("idle child should have Sprite");
 
         assert_eq!(selected_sprite.color, Color::Srgba(BLUE));
         assert_eq!(idle_sprite.color, Color::Srgba(RED));
@@ -674,8 +723,12 @@ mod tests {
             .world()
             .entity(selected_child)
             .get::<TextColor>()
-            .unwrap();
-        let idle_text = app.world().entity(idle_child).get::<TextColor>().unwrap();
+            .expect("selected child should have TextColor");
+        let idle_text = app
+            .world()
+            .entity(idle_child)
+            .get::<TextColor>()
+            .expect("idle child should have TextColor");
 
         assert_eq!(selected_text.0, Color::Srgba(BLUE));
         assert_eq!(idle_text.0, Color::Srgba(RED));
@@ -700,11 +753,19 @@ mod tests {
         let menu_entity = app.world_mut().spawn(menu).id();
         app.update();
 
-        let children = app.world().entity(menu_entity).get::<Children>().unwrap();
+        let children = app
+            .world()
+            .entity(menu_entity)
+            .get::<Children>()
+            .expect("menu entity should have children");
         let child = children[0];
 
         assert!(app.world().entity(child).contains::<Name>());
-        let name = app.world().entity(child).get::<Name>().unwrap();
+        let name = app
+            .world()
+            .entity(child)
+            .get::<Name>()
+            .expect("child should have Name");
         assert_eq!(name.as_str(), "CustomNode");
     }
 }
