@@ -1,6 +1,6 @@
 use bevy::{input::common_conditions::input_pressed, prelude::*};
 use bevy_small_menu::{
-    CloseSmallMenu, ClosedMenu, CycleDirection, Selected, SelectionCallback, SelectionEvent,
+    CloseSmallMenu, ClosedMenu, CycleDirection, SelectedNode, SelectionCallback, SelectionEvent,
     SmallMenu, SmallMenuNode, SmallMenuPlugin,
 };
 
@@ -42,8 +42,6 @@ struct DisplaySelected;
 fn main() {
     let primary_window = Window {
         title: "Bevy SmallMenu Simple".to_string(),
-        resolution: (1280.0, 720.0).into(),
-        resizable: false,
         ..default()
     };
 
@@ -117,10 +115,10 @@ fn draw_main_nodes(mut commands: Commands, mut next_state: ResMut<NextState<Play
 
 fn input_triggers(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
     if input.any_just_pressed([KeyCode::KeyD, KeyCode::ArrowRight]) {
-        commands.trigger(CycleDirection::<MainNodes>::right());
+        commands.trigger(CycleDirection::Right);
     }
     if input.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
-        commands.trigger(CycleDirection::<MainNodes>::left());
+        commands.trigger(CycleDirection::Left);
     }
     if input.just_pressed(KeyCode::Enter) {
         commands.trigger(SelectionCallback::<MainNodes>::default());
@@ -130,7 +128,7 @@ fn input_triggers(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
     }
 }
 
-fn get_selected_node(trigger: Trigger<SelectionEvent<MainNodes>>, mut commands: Commands) {
+fn get_selected_node(trigger: On<SelectionEvent<MainNodes>>, mut commands: Commands) {
     match trigger.selection {
         MainNodes::FastFood => {
             commands.spawn((
@@ -188,8 +186,8 @@ fn get_selected_node(trigger: Trigger<SelectionEvent<MainNodes>>, mut commands: 
 }
 
 fn display_selected(
-    selected: Query<&Text, With<Selected>>,
-    mut display_selected: Query<&mut Text, (With<DisplaySelected>, Without<Selected>)>,
+    selected: Query<&Text, With<SelectedNode>>,
+    mut display_selected: Query<&mut Text, (With<DisplaySelected>, Without<SelectedNode>)>,
 ) {
     let mut selection = String::from("Current food: ");
 
@@ -203,7 +201,7 @@ fn display_selected(
 }
 
 fn get_closed_main_menu(
-    _: Trigger<ClosedMenu<MainNodes>>,
+    _: On<ClosedMenu<MainNodes>>,
     mut commands: Commands,
     mut next_state: ResMut<NextState<PlayerState>>,
 ) {

@@ -15,21 +15,18 @@ keywords = ["bevy", "gamedev", "menu", "selection"]
 exclude = ["assets/*"]
 
 [dependencies]
-bevy = { version = "0.16.1", default-features = false }
+bevy = { version = "0.18", default-features = false, features=  ["std", "2d"]}
 
 [dev-dependencies]
-bevy = { version = "0.16.1", default-features = false, features = [
-    "std",
-    "bevy_asset",
-    "bevy_ui",
-    "bevy_state",
-    "bevy_text",
-    "png",
-    "x11",
-    "bevy_window",
-    "default_font",
-] }
+bevy = { version = "0.18", default-features = false, features = ["2d"]}
 
 [lints.clippy]
 type_complexity = "allow"
 too_many_arguments = "allow"
+
+# Optimize for build time in CI.
+[profile.ci]
+inherits = "dev"
+opt-level = 0
+debug = "line-tables-only"
+codegen-units = 4
