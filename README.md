@@ -7,7 +7,7 @@ A type safe head-less menu plugin for [Bevy Engine](https://bevyengine.org/). Th
 <img src="/assets/character.gif" height="250" width="250">
 
 ## Getting Started
-Dive into the examples to see bevy_small_menu in action::
+Dive into the examples to see bevy_small_menu in action:
 - UI Nodes [Simple Selection example](examples/simple.rs)
 - Sprites [Character Selection example](examples/character.rs)
 
@@ -89,7 +89,7 @@ if input.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
 
 Register an observer to handle selection events:
 ```rust
-fn selction_event(
+fn selection_event(
     trigger: Trigger<SelectionEvent<T>>,
 )
 ```
@@ -99,7 +99,7 @@ commands.trigger(SelectionCallback::<T>::default())
 ```
 
 
-**Chaging colors**
+**Changing colors**
 
 Each node has a `SelectedNodeColor(pub Color)` and `IdleNodeColor(pub Color)` component.
 
@@ -119,7 +119,7 @@ commands.trigger(ChangeNodeColors {
 ```
 
 **Closing a menu**
-The event will close the last initialized menu,
+This trigger will close the last initialized menu:
 ```rust
 commands.trigger(CloseSmallMenu)
 ```
@@ -130,6 +130,6 @@ _: Trigger<ClosedMenu<MainNodes>>,
 ```
 
 ### Bevy Version Compatibility
-| bevy_behave | bevy |
-| ----------- | ---- |
-| 0.1         | 0.16 |
+| bevy_small_menu | bevy |
+| --------------- | ---- |
+| 0.1             | 0.18 |
