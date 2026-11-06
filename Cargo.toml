@@ -1,6 +1,6 @@
 [package]
 name = "bevy_small_menu"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = [
     "glklimmer <https://github.com/glklimmer>",
@@ -15,10 +15,10 @@ keywords = ["bevy", "gamedev", "menu", "selection"]
 exclude = ["assets/*"]
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features=  ["std", "2d"]}
+bevy = { version = "0.20", default-features = false, features=  ["std", "2d"]}
 
 [dev-dependencies]
-bevy = { version = "0.18", default-features = false, features = ["2d"]}
+bevy = { version = "0.20", default-features = false, features = ["2d", "ui"]}
 
 [lints.clippy]
 type_complexity = "allow"

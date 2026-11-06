@@ -90,7 +90,7 @@ if input.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
 Register an observer to handle selection events:
 ```rust
 fn selection_event(
-    trigger: Trigger<SelectionEvent<T>>,
+    trigger: On<SelectionEvent<T>>,
 )
 ```
 Then, trigger a request to get the selected node using:
@@ -126,10 +126,11 @@ commands.trigger(CloseSmallMenu)
 
 The plugin will then trigger the event `ClosedMenu` when a menu is closed.
 ```rust
-_: Trigger<ClosedMenu<MainNodes>>,
+_: On<ClosedMenu<MainNodes>>,
 ```
 
 ### Bevy Version Compatibility
 | bevy_small_menu | bevy |
 | --------------- | ---- |
 | 0.1             | 0.18 |
+| 0.2             | 0.20 |
