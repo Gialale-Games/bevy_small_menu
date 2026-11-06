@@ -133,3 +133,4 @@ _: Trigger<ClosedMenu<MainNodes>>,
 | bevy_small_menu | bevy |
 | --------------- | ---- |
 | 0.1             | 0.18 |
+| 0.2             | 0.20 |

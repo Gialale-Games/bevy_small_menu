@@ -62,7 +62,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            draw_main_nodes.run_if(input_pressed(KeyCode::Enter).and(in_state(PlayerState::World))),
+            draw_main_nodes.run_if(input_pressed(KeyCode::Enter).and_then(in_state(PlayerState::World))),
         )
         .add_systems(OnExit(PlayerState::World), clean_setup)
         .add_systems(

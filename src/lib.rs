@@ -212,7 +212,7 @@ impl<T: Clone + Send + Sync + 'static> Plugin for SmallMenuPlugin<T> {
 }
 
 fn open_small_menu<T: Clone + Send + Sync + 'static>(
-    trigger: On<Add, SmallMenu<T>>,
+    trigger: On<Add<SmallMenu<T>>>,
     mut commands: Commands,
     mut active: ResMut<ActiveSmallMenus>,
     query: Query<&SmallMenu<T>>,
@@ -310,7 +310,7 @@ fn close_small_menu(
 }
 
 fn closed_menu_callback<T: Clone + Send + Sync + 'static>(
-    _: On<Remove, SmallMenu<T>>,
+    _: On<Remove<SmallMenu<T>>>,
     mut commands: Commands,
 ) {
     commands.trigger(ClosedMenu::<T>(PhantomData));
